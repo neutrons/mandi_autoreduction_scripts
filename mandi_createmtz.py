@@ -79,6 +79,7 @@ def createMTZFile(d, out_dir, run_number):
             logger.information('Including run number {0:d}'.format(rn))
             runNumbersProcessed.append(rn)
             peaks_ws = LoadIsawPeaks(Filename=peaksFileName)
+            peaks_ws_profile = LoadIsawPeaks(Filename=peaksPFFileName)
 
             dfTWS = pd.DataFrame(peaks_ws.toDict())
             dfTParams = readParamsNexusFile(paramsFileName)
