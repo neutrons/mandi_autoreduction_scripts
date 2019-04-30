@@ -30,6 +30,7 @@ def createMTZFile(d, out_dir, run_number):
     lauenorm_max_wl = float(d['lauenorm_max_wl'])
     lauenorm_min_isi = float(d['lauenorm_min_isi'])
     lauenorm_mini = float(d['lauenorm_mini'])
+    lauenorm_applysinsq = bool(d['lauenorm_applysinsq'])
     pbpDir = d['pbpDir']
     laueLibDir = d['laueLibDir']
     laueNormBin = d['laueNormBin']
@@ -191,12 +192,19 @@ def createMTZFile(d, out_dir, run_number):
     print('Rejecting {0} peaks for bad fits and {1} peaks for being on the edge'.format(np.sum(~goodIDX), np.sum(edgeIDX)))
     goodIDX = goodIDX & ~edgeIDX
 
+    if lauenorm_applysinsq: #Apply sin(theta)**2, let lauenorm do wavelength part of Lorentz correction
+        df['Intens3d_normalized'] = df['Intens3d']*df['theta'].apply(lambda x: 1000*np.sin(x)*np.sin(x))
+        df['SigInt3d_normalized'] = df['SigInt3d']*df['theta'].apply(lambda x: 1000*np.sin(x)*np.sin(x))
+    else:
+        df['Intens3d_normalized'] = df['Intens3d']
+        df['SigInt3d_normalized'] = df['SigInt3d']
+
     ws = CloneWorkspace(InputWorkspace=pwsPF, OutputWorkspace='ws')
     ws2 = CloneWorkspace(InputWorkspace=pwsSPH, OutputWorkspace='ws2')
     for i in range(len(df)):
         if goodIDX[i]:
-            ws.getPeak(i).setIntensity(df.iloc[i]['Intens3d'])
-            ws.getPeak(i).setSigmaIntensity(df.iloc[i]['SigInt3d'])
+            ws.getPeak(i).setIntensity(df.iloc[i]['Intens3d_normalized'])
+            ws.getPeak(i).setSigmaIntensity(df.iloc[i]['SigInt3d_normalized'])
         else:
             ws.getPeak(i).setIntensity(lauenorm_mini - 1.)
             ws.getPeak(i).setSigmaIntensity(1.0)
