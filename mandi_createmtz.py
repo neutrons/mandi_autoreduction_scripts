@@ -12,6 +12,24 @@ from mantid.api import *
 import pandas as pd
 import numpy as np
 import glob
+import h5py
+
+def readParamsNexusFile(paramFileName):
+    d = {}
+    with h5py.File(paramFileName) as f:
+        colsToRead = f['mantid_workspace_1/table_workspace/'].keys()
+        for col in colsToRead:
+            colName = f['mantid_workspace_1/table_workspace/{}'.format(col)].attrs['name']
+            colVal = f['mantid_workspace_1/table_workspace/{}'.format(col)].value
+            if colName != 'newQ':
+                d[colName] = colVal
+            else: #This skips newQ because creating a dataframe 
+                newQList = []
+                for v in colVal:
+                    newQList.append(v)
+                d[colName] = newQList
+    df = pd.DataFrame(d)
+    return df
 
 def createMTZFile(d, out_dir, run_number):
     a = float(d['unitcell_a'])
@@ -55,11 +73,12 @@ def createMTZFile(d, out_dir, run_number):
             runNumbersProcessed.append(rn)
             peaks_ws = LoadIsawPeaks(Filename=peaksFileName)
             peaks_ws_profile = LoadIsawPeaks(Filename=peaksPFFileName)
-            params_ws = Load(Filename=paramsFileName)
+            #params_ws = Load(Filename=paramsFileName)
 
             dfTWS = pd.DataFrame(peaks_ws.toDict())
             dfTPF = pd.DataFrame(peaks_ws_profile.toDict())
-            dfTParams = pd.DataFrame(params_ws.toDict())
+            #dfTParams = pd.DataFrame(params_ws.toDict())
+            dfTParams = readParamsNexusFile(paramsFileName)
             dfT = pd.merge(dfTWS, dfTParams, left_on='PeakNumber', right_on='peakNumber', how='outer')
             dfT['theta'] = dfT['QLab'].apply(lambda x: np.arctan2(x[2],np.hypot(x[0],x[1])))
             dfT['phi'] = dfT['QLab'].apply(lambda x: np.arctan2(x[1],x[0]))
@@ -158,13 +177,13 @@ def createMTZFile(d, out_dir, run_number):
     for i, runNumber in enumerate(runNumbersProcessed):
         UBFileName = outputFilenameTemplate%('UB', runNumber, 'mat')
         LoadIsawUB(InputWorkspace=pwsPF, Filename = UBFileName)
-        numIndexed, _ = IndexPeaks(pwsPF, tolerance=tolerance)
+        numIndexed = IndexPeaks(pwsPF, tolerance=tolerance)[0]
         numPeaksIndexed[i] = numIndexed
     gIDX = np.argmax(numPeaksIndexed)
     LoadIsawUB(InputWorkspace=pwsPF, Filename = outputFilenameTemplate%('UB', runNumbersProcessed[gIDX], 'mat'))
     LoadIsawUB(InputWorkspace=pwsSPH, Filename = outputFilenameTemplate%('UB', runNumbersProcessed[gIDX], 'mat'))
-    numIndexed, _ = IndexPeaks(pwsPF, tolerance=tolerance)
-    numIndexed, _ = IndexPeaks(pwsSPH, tolerance=tolerance)
+    numIndexed = IndexPeaks(pwsPF, tolerance=tolerance)[0]
+    numIndexed = IndexPeaks(pwsSPH, tolerance=tolerance)[0]
     print('There are {0:d} peaks total.  The UB matrix from run {1:d} will index {2:d} of them ({3:4.2f} percent).  Using this file.'.format(
                     pwsPF.getNumberPeaks(), runNumbersProcessed[gIDX], numPeaksIndexed[gIDX], 100.*numPeaksIndexed[gIDX]/pwsPF.getNumberPeaks()))
                     
@@ -174,8 +193,8 @@ def createMTZFile(d, out_dir, run_number):
                                      NumInitial=50,Tolerance=tolerance,Iterations=1000)
         FindUBUsingLatticeParameters(PeaksWorkspace=pwsSPH, a=a, b=b, c=c, alpha=alpha, beta=beta, gamma=gamma,
                                      NumInitial=50,Tolerance=tolerance,Iterations=1000)
-        numIndexed, _ = IndexPeaks(PeaksWorkspace=pwsPF)
-        numIndexed, _ = IndexPeaks(PeaksWorkspace=pwsSPH)
+        numIndexed = IndexPeaks(PeaksWorkspace=pwsPF)[0]
+        numIndexed = IndexPeaks(PeaksWorkspace=pwsSPH)[0]
         lattice = pwsPF.sample().getOrientedLattice()
         print('New lattice:')
         print(lattice)
@@ -203,8 +222,8 @@ def createMTZFile(d, out_dir, run_number):
     ws2 = CloneWorkspace(InputWorkspace=pwsSPH, OutputWorkspace='ws2')
     for i in range(len(df)):
         if goodIDX[i]:
-            ws.getPeak(i).setIntensity(df.iloc[i]['Intens3d_normalized'])
-            ws.getPeak(i).setSigmaIntensity(df.iloc[i]['SigInt3d_normalized'])
+            ws.getPeak(i).setIntensity(float(df.iloc[i]['Intens3d_normalized']))
+            ws.getPeak(i).setSigmaIntensity(float(df.iloc[i]['SigInt3d_normalized']))
         else:
             ws.getPeak(i).setIntensity(lauenorm_mini - 1.)
             ws.getPeak(i).setSigmaIntensity(1.0)
