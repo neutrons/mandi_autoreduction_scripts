@@ -1,12 +1,13 @@
-import sys,os,subprocess,re
+import sys
+import os
 import numpy as np
 import matplotlib
 matplotlib.use("agg")
 
 if __name__ == "__main__":
-    np.seterr("ignore")#ignore division by 0 warning in plots
-    #check number of arguments
-    if (len(sys.argv) != 3): 
+    np.seterr("ignore")  # ignore division by 0 warning in plots
+    # check number of arguments
+    if (len(sys.argv) != 3):
         logger.error("autoreduction code requires a filename and an output directory")
         sys.exit()
     if not(os.path.isfile(sys.argv[1])):
