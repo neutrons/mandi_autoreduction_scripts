@@ -8,13 +8,11 @@ import pickle
 #-------------------------------------------------------------------parameters in this block need to be set.
 # this should point to the version of python you'd like to run.  Until the algorith is more stable, this will
 # probably be the nightly or a dev build (on analysis, you probably want mantidpythonnightly)
-python_command = '/SNS/users/ntv/workspace/mantid/release/bin/mantidpython' #On analysis, should be 'mantidpythonnightly'
 python_command = 'mantidpythonnightly'
-#python_command = '/home/ntv/workspace/mantid/release/bin/mantidpython' #On analysis, should be 'mantidpythonnightly'
 peaksFile = None
 UBFile = None
 # parameters for parallel runs
-outDir = '/SNS/users/ntv/Desktop/beta_lac_july2018_secondtxtal/' #Where we save results - should end with /
+outDir = '/SNS/users/USR/Desktop/beta_lac_july2018_secondtxtal/' #Where we save results - should end with /
 max_processes = 3 #Largest number of runs to reduce at a time - typically limited by RAM.
 reduce_one_run_script = 'mandi_singleRun.py'
 eventFilesFormat = '/SNS/MANDI/IPTS-8776/nexus/MANDI_%i.nxs.h5' # %i will be replaced by the run number
@@ -40,12 +38,12 @@ min_pred_wl = 2.0 #Low wavelength to predict peaks
 max_pred_wl = 4.0 #High wavelength to predict peaks
 
 # IntegratePeaksProfileFitting parameters
-ModeratorFile = '/SNS/users/ntv/integrate/bl11_moderatorCoefficients_2018.dat' #file with moderator coefficients
-StrongPeaksParamsFile = None#'/home/ntv/integrate/strongPeakParams_pthMulti.pkl' #string to pkl file containing strong peaks parameters
+ModeratorFile = '/SNS/users/USR/integrate/bl11_moderatorCoefficients_2018.dat' #file with moderator coefficients
+StrongPeaksParamsFile = None #string to pkl file containing strong peaks parameters
 DetCalFile = '/SNS/MANDI/shared/ProfileFitting/MANDI_June2018.DetCal'
-#DetCalFile = '/SNS/MANDI/shared/ProfileFitting/MANDI_Jan2019.DetCal'
 IntensityCutoff = 200 #Peaks with spherical intensity below IntensityCutoff are considered weak peaks
 EdgeCutoff = 3 #Peaks within EdgeCutoff of the edge will have their profiles taken from a strong peak
+
 # --(the parameters here probably don't need changing)--
 FracStop = 0.15 #Fraction of the peak maximum we use to define the peak volume
 MinpplFrac = 0.9 #Lower fraction of background estimate to check against expected TOF profile

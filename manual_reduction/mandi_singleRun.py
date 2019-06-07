@@ -62,7 +62,7 @@ def doIntegration(d):
         MDdata = ConvertToMD(InputWorkspace='event_ws', QDimensions='Q3D', dEAnalysisMode='Elastic',
                              Q3DFrames='Q_lab', OutputWorkspace='MDdata', MinValues='-5,-5,-5',
                              MaxValues='5,5,5', MaxRecursionDepth=10)
-        np.savetxt('/SNS/users/ntv/Desktop/nak/%i_samppos.txt'%runNumber, newSampPos)
+        np.savetxt('/SNS/users/USR/Desktop/nak/%i_samppos.txt'%runNumber, newSampPos)
         """ #End set optimal xtal position
 
         mtd.remove('event_ws') #Free up memory
