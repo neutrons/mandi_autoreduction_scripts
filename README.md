@@ -2,7 +2,7 @@
 
 ## Autoreduction Instructions
 ### General
-This repository contains a series of scripts that collectively run the autoreduction for the MaNDi beamline at the SNS. The setup is relatively hacky and users should take time to verify that the output makes sense.  It is designed to run on a single machine (e.g. `mandi1.sns.gov`) and checks the specified IPTS folder for a new nexus file every minute.  When a new file is found, it will check if a config file (must be called `/SNS/MANDI/IPTS-YYYY/shared/autoreduce/mandi_autoreduce.config` where `YYYY` is the IPTS number.)  In addition, the process must be started by a user who has write access to the IPTS experiment and /SNS/MANDI/shared/ (typically beamline staff).
+This repository contains a series of scripts that collectively run the autoreduction for the MaNDi beamline at the SNS. The setup is relatively hacky and users should take time to verify that the output makes sense.  It is designed to run on a single machine (e.g. the MaNDi analysis machines) and checks the specified IPTS folder for a new nexus file every minute.  When a new file is found, it will check if a config file (must be called `/SNS/MANDI/IPTS-YYYY/shared/autoreduce/mandi_autoreduce.config` where `YYYY` is the IPTS number.)  In addition, the process must be started by a user who has write access to the IPTS experiment and /SNS/MANDI/shared/ (typically beamline staff).
 
 ### Setting up a New Experiment
 1) If autoreduction is currently running, kill it.  This can be done by killing any terminal that is running `start_run_checker.py`
