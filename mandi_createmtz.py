@@ -101,7 +101,7 @@ def createMTZFile(d, out_dir, run_number, run_numbers_to_process=None):
 
     # Create the combined workspaces and a pandas dataframe that
     # we can use to filter bad fits.
-    outputFilenameTemplate = out_dir + '%s_ws_%i_mandi_autoreduced_jun18_0p15cutoff.%s'
+    outputFilenameTemplate = out_dir + '%s_ws_%i_mandi_autoreduced.%s'
     runNumbersProcessed = []
     dfList = []
 
