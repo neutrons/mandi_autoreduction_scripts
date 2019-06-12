@@ -37,6 +37,29 @@ max_pred_dspacing = 15.0 #Highest d to predict peak to
 min_pred_wl = 2.0 #Low wavelength to predict peaks
 max_pred_wl = 4.0 #High wavelength to predict peaks
 
+# Parameters for lauenorm
+spacegroup_number = 154 #Space group number for laueNorm.
+mtz_name = 'betalac' #name for mtz files resulting from laueNorm 
+lauenorm_edge_pixels = 1 #number of pixels from the edge to exclude
+lauenorm_scale_peaks = 3. #Value to scale peak intensitys and sigmas by
+lauenorm_min_d = 1.2 #Minimum d value to output for laueNorm
+lauenorm_min_wl = 2.1 #Min wavelength to output for laueNorm
+lauenorm_max_wl = 3.9 #Max wavelength to output for laueNorm
+lauenorm_min_isi = 1.0 #Min I/sigma to output for laueNorm
+lauenorm_mini = 0.0 #Min I to output for laueNorm
+lauenorm_applysinsq = True #If true, will multiply intensities and sigmas by sin(theta)**2
+                           #Allowing lauenorm to apply the wavelength component of the Lorentz
+                           #correction.
+force_lattice_parameters = False #When indexing all runs together, should we run FindUBUsingLatticeParameters.
+                                 #If this is false, you will be asked if you want to after an optimal UB is found
+                                 #in mandi_createmtz.py, since sometimes this still finds the Niggli cell.
+
+# Directories for lauenorm
+pbpDir = '/SNS/MANDI/shared/laue3/' #pbp directory for laueNorm.  Must contain multidiags.out (from laugen). Should end with /
+laueLibDir = '/SNS/MANDI/shared/laue3/laue/laue_install/lib/' #library file for lauegen.  Should end with /
+laueNormBin = '/SNS/MANDI/shared/laue3/laue/laue_install/bin/lauenorm' #Binary file for lauenorm.
+
+
 # IntegratePeaksProfileFitting parameters
 ModeratorFile = '/SNS/users/USR/integrate/bl11_moderatorCoefficients_2018.dat' #file with moderator coefficients
 StrongPeaksParamsFile = None #string to pkl file containing strong peaks parameters
@@ -86,7 +109,20 @@ d['gamma'] = gamma
 d['peaksFile'] = peaksFile
 d['UBFile'] = UBFile
 d['DetCalFile'] = DetCalFile
-
+d['spacegroup_number'] = spacegroup_number
+d['mtz_name'] = mtz_name
+d['lauenorm_edge_pixels'] = lauenorm_edge_pixels
+d['lauenorm_scale_peaks'] = lauenorm_scale_peaks
+d['lauenorm_min_d'] = lauenorm_min_d
+d['lauenorm_min_wl'] = lauenorm_min_wl
+d['lauenorm_max_wl'] = lauenorm_max_wl
+d['lauenorm_min_isi'] = lauenorm_min_isi
+d['lauenorm_mini'] = lauenorm_mini
+d['lauenorm_applysinsq'] = lauenorm_applysinsq
+d['pbpDir'] = pbpDir
+d['laueLibDir'] = laueLibDir
+d['laueNormBin'] = laueNormBin
+d['force_lattice_parameters'] = force_lattice_parameters
 
 #Define a class for threading (taken from ReduceSCD_Parallel.py) and set up parallel runs
 class ProcessThread ( threading.Thread ):
