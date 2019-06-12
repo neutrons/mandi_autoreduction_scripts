@@ -13,9 +13,14 @@ import pandas as pd
 import numpy as np
 import glob
 import h5py
-
+import pickle
 
 def readParamsNexusFile(paramFileName):
+    """
+    This function reads the parameters output from IntegratePeaksProfileFitting.
+    Loading them through mantid takes about 20 times longer than using h5py directly,
+    so we do it this way.
+    """
     d = {}
     with h5py.File(paramFileName) as f:
         colsToRead = f['mantid_workspace_1/table_workspace/'].keys()
@@ -33,8 +38,42 @@ def readParamsNexusFile(paramFileName):
     df = pd.DataFrame(d)
     return df
 
+def parsePickledParameters(paramFileName):
+    """
+    This function is a converter from the manual parameters dictionary ("pkl")
+    to the parameters dictionary defined by the *config file used for autoreduction.
+    """
+    dIn = pickle.load(open(paramFileName, 'rb'))
+    d = {} #Output dictionary, in the format of a .config file
+    d['unitcell_a'] = dIn['a']
+    d['unitcell_b'] = dIn['b']
+    d['unitcell_c'] = dIn['c']
+    d['unitcell_alpha'] = dIn['alpha']
+    d['unitcell_beta'] = dIn['beta']
+    d['unitcell_gamma'] = dIn['gamma']
+    d['first_run_number'] = np.min(dIn['run_nums'])
+    d['spacegroup_number'] = dIn['spacegroup_number']
+    d['mtz_name'] = dIn['mtz_name']
+    d['lauenorm_edge_pixels'] = dIn['lauenorm_edge_pixels']
+    d['lauenorm_scale_peaks'] = dIn['lauenorm_scale_peaks']
+    d['lauenorm_min_d'] = dIn['lauenorm_min_d']
+    d['lauenorm_min_wl'] = dIn['lauenorm_min_wl']
+    d['lauenorm_max_wl'] = dIn['lauenorm_max_wl']
+    d['lauenorm_min_isi'] = dIn['lauenorm_min_isi']
+    d['lauenorm_mini'] = dIn['lauenorm_mini']
+    d['lauenorm_applysinsq'] = dIn['lauenorm_applysinsq']
+    d['pbpDir'] = dIn['pbpDir']
+    d['laueLibDir'] = dIn['laueLibDir']
+    d['laueNormBin'] = dIn['laueNormBin']
+    d['tolerance'] = dIn['tol']
+    d['force_lattice_parameters'] = dIn['force_lattice_parameters']
+    d['run_nums'] = dIn['run_nums']
+    return d
 
-def createMTZFile(d, out_dir, run_number):
+def createMTZFile(d, out_dir, run_number, run_numbers_to_process=None):
+    """
+    Puts all runs between 
+    """
     a = float(d['unitcell_a'])
     b = float(d['unitcell_b'])
     c = float(d['unitcell_c'])
@@ -58,13 +97,19 @@ def createMTZFile(d, out_dir, run_number):
     tolerance = float(d['tolerance'])
     force_lattice_parameters = bool(d['force_lattice_parameters'])
     laue_directory = out_dir + 'laue/'
+    laue_directory = os.path.abspath(laue_directory) + '/'
 
     # Create the combined workspaces and a pandas dataframe that
     # we can use to filter bad fits.
     outputFilenameTemplate = out_dir + '%s_ws_%i_mandi_autoreduced.%s'
     runNumbersProcessed = []
     dfList = []
-    for rn in range(first_run_number, run_number + 1):
+
+    # If we are not given an explicit list of run numbers, we assume
+    # that we should go from first_run_number to run_number.
+    if run_numbers_to_process is None:
+        run_numbers_to_process = range(first_run_number, run_number + 1)
+    for rn in run_numbers_to_process:
         print('createMTZ - starting run %i' % rn)
         paramsFileName = outputFilenameTemplate % ('params', rn, 'nxs')
         peaksFileName = outputFilenameTemplate % ('peaks', rn, 'integrate')
@@ -85,6 +130,7 @@ def createMTZFile(d, out_dir, run_number):
             dfTParams = readParamsNexusFile(paramsFileName)
             dfT = pd.merge(dfTWS, dfTParams, left_on='PeakNumber',
                            right_on='peakNumber', how='outer')
+            dfT = dfT[~pd.isnull(dfT['QLab'])]
             dfT['theta'] = dfT['QLab'].apply(lambda x: np.arctan2(
                                              x[2], np.hypot(x[0], x[1])))
             dfT['phi'] = dfT['QLab'].apply(lambda x: np.arctan2(x[1], x[0]))
@@ -102,6 +148,10 @@ def createMTZFile(d, out_dir, run_number):
                 pwsPF = CombinePeaksWorkspaces(LHSWorkspace=pwsPF,
                                                RHSWorkspace=peaks_ws_profile,
                                                OutputWorkspace=pwsPF)
+        else:
+            print('Cannot find one of the following files.'
+                  '  Will continue without this run:')
+            print(paramsFileName, peaksFileName, peaksPFFileName) 
         print('createMTZ - finished run %i' % rn)
     if (len(dfList) > 0):
         df = pd.concat(dfList)
@@ -212,7 +262,14 @@ def createMTZFile(d, out_dir, run_number):
                                       runNumbersProcessed[gIDX],
                                       numPeaksIndexed[gIDX],
                                       percentIndexed))
+    lattice = pwsPF.sample().getOrientedLattice()
 
+    if not force_lattice_parameters:
+        print('The optimized lattice is', lattice)
+        print('The input lattice was ', a,b,c, alpha, beta, gamma)
+        strRedoIndex = raw_input('Would you like to try reindexing using FindUBUsingLatticeParameters? (Y/[n])  ')
+        if 'Y' in strRedoIndex.upper():
+            force_lattice_parameters = True
     if force_lattice_parameters:
         print('Reindexing in new coordinate system.')
         print('This may take serveral minutes.')
@@ -279,6 +336,9 @@ def createMTZFile(d, out_dir, run_number):
     oldLaueNormFiles = glob.glob(laue_directory + 'laueNorm*')
     for fileName in oldLaueNormFiles:
         os.remove(fileName)
+    print('********************')
+    print(laue_directory)
+    print(lauenorm_scale_peaks, lauenorm_min_d,lauenorm_min_wl,lauenorm_max_wl,lauenorm_min_isi,lauenorm_mini)
     SaveLauenorm(InputWorkspace=ws, Filename=laue_directory + 'laueNorm',
                  ScalePeaks=lauenorm_scale_peaks, MinDSpacing=lauenorm_min_d,
                  MinWavelength=lauenorm_min_wl, MaxWavelength=lauenorm_max_wl,
@@ -372,7 +432,14 @@ if __name__ == '__main__':
         sys.exit()
     else:
         config_file_name = str(sys.argv[1])
-        out_dir = str(sys.argv[2])
+        out_dir = os.path.abspath(str(sys.argv[2])) + '/'
         run_number = int(sys.argv[3])
-        params_dictionary = ReduceDictionary.LoadDictionary(config_file_name)
-        createMTZFile(params_dictionary, out_dir, run_number)
+        if(config_file_name[-7:] == '.config'):
+            params_dictionary = ReduceDictionary.LoadDictionary(config_file_name)
+            createMTZFile(params_dictionary, out_dir, run_number)
+        elif(config_file_name[-4:] == '.pkl'):
+            params_dictionary = parsePickledParameters(config_file_name)
+            createMTZFile(params_dictionary, out_dir, run_number,
+                          run_numbers_to_process = params_dictionary['run_nums'])
+        else:
+            raise ValueError("The config file name must end with \".config\" or \".pkl\"")
