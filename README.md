@@ -35,7 +35,22 @@ $ /SNS/MANDI/shared/autoreduce/autoreduce_monitor.py
 Currently, autoreduction only looks for the event (`.nxs`) file from the run after the run number in `/SNS/MANDI/shared/autoreduce/last_run_processed.dat`.  So to re-analyze a single run, just follows the steps to start autoreduction setting the appropriate run number.
 
 ### Analyzing series of runs by hand
-(This feature must be added still).
+To analyze a set of runs by hand (i.e. when revisiting old data), use the scripts in the `manual_reduction` folder.  This folder has three files.  You should copy these three folders to a working directory.  The files are:
+
+1) `mandi_parallel.py`: This script should be all you need to change for most experiments.  It defines the parameters for integration (which runs to integrate, sample dimensions, etc.) and creates a dictionary of parameters for each run to be analyzed.  Each parameter is commented with an explanation.  After saving the dictionary files, this program will run the integration for each run in `run_nums`.  It will run upto `max_processes` at a time, starting the next run as runs finish.  To run this:
+
+```bash
+$ python mandi_parallel.py
+```
+
+2) `mandi_singleRun.py`: This script does the "heavy lifting" for integration.  It loads the run (and DetCal file optionally), converts to reciprocal space, finds peaks, indexes peaks, integrates them using spherical integration, and then integrates using profile fitting.  The script will write four files at the end of each run: two `.integrate` files for spherical and profile fitted intensities, a `.mat` file containing the UB matrix used for indexing, and a `.nxs` file containing the parameters of each peak's fit.  This script should not need to be run manually.
+
+3) `mandi_createmtz.py`: This script loads the runs, filters peaks, outputs the input files for laueNorm, and runs laueNorm resulting in merged and unmerged mtz files.  It should be run after mandi_parallel.py has finished.  To run this script:
+
+```bash
+$ mantidpython mandi_createmtz.py fitParams_XXXX.pkl path/to/working/directory XXXX
+```
+where XXXX is the highest run number being analyzed.  (Choosing the highest isn't that important, but for easy use with autoreduction it needs a run number - in reality it will base everything on the list of run numbers in the pkl file.)  Note that the config file **must end with .pkl** for manual reduction.  Output files, including the mtz files and logs will be stored in `path/to/working/directory/laue/`.
 
 ### Output from Autoreduction
 Autoreduction will output a few files per run.  All of these files are saved to `/SNS/MANDI/IPTS-YYYY/shared/autoreduce/`.  A description is given below (for run number XXXX):
