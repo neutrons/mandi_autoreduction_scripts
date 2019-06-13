@@ -1,14 +1,13 @@
 from __future__ import (absolute_import, division, print_function)
 import os
 import sys
-import ReduceDictionary
 import subprocess
 import matplotlib
 matplotlib.use("agg")
 import matplotlib.pyplot as plt  # noqa: E402
-sys.path.insert(0, "/opt/mantidnightly/bin")
 from mantid.simpleapi import *
 from mantid.api import *
+import ReduceDictionary
 import pandas as pd
 import numpy as np
 import glob
@@ -64,10 +63,11 @@ def parsePickledParameters(paramFileName):
     d['lauenorm_applysinsq'] = dIn['lauenorm_applysinsq']
     d['pbpDir'] = dIn['pbpDir']
     d['laueLibDir'] = dIn['laueLibDir']
-    d['laueNormBin'] = dIn['laueNormBin']
+    d['lauenormBin'] = dIn['lauenormBin']
     d['tolerance'] = dIn['tol']
     d['force_lattice_parameters'] = dIn['force_lattice_parameters']
     d['run_nums'] = dIn['run_nums']
+    d['lauenormSetupScript'] = dIn['lauenormSetupScript']
     return d
 
 def createMTZFile(d, out_dir, run_number, run_numbers_to_process=None):
@@ -93,7 +93,8 @@ def createMTZFile(d, out_dir, run_number, run_numbers_to_process=None):
     lauenorm_applysinsq = bool(d['lauenorm_applysinsq'])
     pbpDir = d['pbpDir']
     laueLibDir = d['laueLibDir']
-    laueNormBin = d['laueNormBin']
+    lauenormBin = d['lauenormBin']
+    lauenormSetupScript = d['lauenormSetupScript']
     tolerance = float(d['tolerance'])
     force_lattice_parameters = bool(d['force_lattice_parameters'])
     laue_directory = out_dir + 'laue/'
@@ -389,7 +390,7 @@ def createMTZFile(d, out_dir, run_number, run_numbers_to_process=None):
     # executable
     with open(comFilename, 'w') as f:
         f.write('#!/bin/sh\n')
-        f.write('source /SNS/snfs1/instruments/MANDI/shared/laue3/laue/laue.setup-sh\n')  # noqa: E501
+        f.write('source %s\n' % lauenormSetupScript)  # noqa: E501
         f.write('cwd=$(pwd)\n')
         for runNum in range(numRuns):
             f.write('LAUE%03i=$cwd/laueNorm%03i\n' % (runNum + 1, runNum + 1))
@@ -410,11 +411,11 @@ def createMTZFile(d, out_dir, run_number, run_numbers_to_process=None):
         f.write('export SYMOP\n')
         f.write('export SYMINFO\n')
         f.write('time %s < %slnorm.dat > %slnorms70aMaNDi.log\n' % (
-                laueNormBin, laue_directory, laue_directory))
+                lauenormBin, laue_directory, laue_directory))
         f.write('HKLOUT=$cwd/%s_merged.mtz\n' % mtz_name)
         f.write('export HKLOUT\n')
         f.write('time %s < %slnorm_merged.dat > %slnorms70aMaNDi_merged.log\n' % (  # noqa: E501
-                laueNormBin, laue_directory, laue_directory))
+                lauenormBin, laue_directory, laue_directory))
     os.chmod(comFilename, 0775)
     print('Wrote lauenorm executable to %s' % comFilename)
     print('Running laueNorm...')
