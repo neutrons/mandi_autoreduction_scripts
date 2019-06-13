@@ -38,6 +38,7 @@ min_pred_wl = 2.0 #Low wavelength to predict peaks
 max_pred_wl = 4.0 #High wavelength to predict peaks
 
 # Parameters for lauenorm
+lauenormSetupScript = '/SNS/snfs1/instruments/MANDI/shared/laue3/laue/laue.setup-sh' #location of the laue.setup-sh for lauegen
 spacegroup_number = 154 #Space group number for laueNorm.
 mtz_name = 'betalac' #name for mtz files resulting from laueNorm 
 lauenorm_edge_pixels = 1 #number of pixels from the edge to exclude
@@ -57,7 +58,7 @@ force_lattice_parameters = False #When indexing all runs together, should we run
 # Directories for lauenorm
 pbpDir = '/SNS/MANDI/shared/laue3/' #pbp directory for laueNorm.  Must contain multidiags.out (from laugen). Should end with /
 laueLibDir = '/SNS/MANDI/shared/laue3/laue/laue_install/lib/' #library file for lauegen.  Should end with /
-laueNormBin = '/SNS/MANDI/shared/laue3/laue/laue_install/bin/lauenorm' #Binary file for lauenorm.
+lauenormBin = '/SNS/MANDI/shared/laue3/laue/laue_install/bin/lauenorm' #Binary file for lauenorm.
 
 
 # IntegratePeaksProfileFitting parameters
@@ -121,8 +122,9 @@ d['lauenorm_mini'] = lauenorm_mini
 d['lauenorm_applysinsq'] = lauenorm_applysinsq
 d['pbpDir'] = pbpDir
 d['laueLibDir'] = laueLibDir
-d['laueNormBin'] = laueNormBin
+d['lauenormBin'] = lauenormBin
 d['force_lattice_parameters'] = force_lattice_parameters
+d['lauenormSetupScript'] = lauenormSetupScript
 
 #Define a class for threading (taken from ReduceSCD_Parallel.py) and set up parallel runs
 class ProcessThread ( threading.Thread ):

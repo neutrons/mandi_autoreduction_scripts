@@ -75,7 +75,7 @@ def createMTZFile(d, out_dir, run_number):
     lauenorm_mini = float(d['lauenorm_mini'])
     pbpDir = d['pbpDir']
     laueLibDir = d['laueLibDir']
-    laueNormBin = d['laueNormBin']
+    lauenormBin = d['lauenormBin']
     tolerance = float(d['tolerance'])
     force_lattice_parameters = bool(d['force_lattice_parameters'])
     laue_directory = out_dir + 'laue/'
@@ -322,10 +322,10 @@ def createMTZFile(d, out_dir, run_number):
         f.write('export PGDATA\n')
         f.write('export SYMOP\n')
         f.write('export SYMINFO\n')
-        f.write('time %s < %slnorm.dat > %slnorms70aMaNDi.log\n' % (laueNormBin, laue_directory, laue_directory))
+        f.write('time %s < %slnorm.dat > %slnorms70aMaNDi.log\n' % (lauenormBin, laue_directory, laue_directory))
         f.write('HKLOUT=$cwd/%s_merged.mtz\n' % mtz_name)
         f.write('export HKLOUT\n')
-        f.write('time %s < %slnorm_merged.dat > %slnorms70aMaNDi_merged.log\n' % (laueNormBin, laue_directory, laue_directory))
+        f.write('time %s < %slnorm_merged.dat > %slnorms70aMaNDi_merged.log\n' % (lauenormBin, laue_directory, laue_directory))
     os.chmod(comFilename, 0775)
     print('Wrote lauenorm executable to %s' % comFilename)
     print('Running laueNorm...')
