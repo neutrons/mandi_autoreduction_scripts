@@ -15,7 +15,7 @@ $ cp /SNS/MANDI/shared/autoreduce/mandi_autoreduce.config /SNS/MANDI/IPTS−YYYY
 
 3) Modify `/SNS/MANDI/IPTS−YYYY/shared/autoreduce/mandi_autoreduce.config` to match your experiment.  The file is commented to explain each parameter.
 
-4) Update the file `/SNS/MANDI/shared/autoreduce/last_run_processed.dat`.  This file contains the run number of the last analyzed run.  Autoreduction will keep looking for the output of run number 1+this number.  (Note that this number increments after each run.  So if you are processing sequential runs you need only do this once per experiment.)
+4) Update the file `/SNS/MANDI/shared/autoreduce/last_run_processed.dat`.  This file contains the run number of the last analyzed run.  Autoreduction will keep looking for the output of run number 1+this number.  So if the first run you want to process is run *n*, this should be set to *n-1*.  (Note that this number increments after each run.  So if you are processing sequential runs you need only do this once per experiment.)
 
 5) Update the file `/SNS/MANDI/shared/autoreduce/autoreduce_status.txt`.  The first line is the status - only used for monitoring what's going on.  The second line is the IPTS number being monitored.  This number must be updated for each experiment.
 
