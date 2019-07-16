@@ -41,6 +41,8 @@ def doIntegration(d, nxsFilename, out_dir, run_number):
     outputFilenameTemplate = out_dir + '%s_ws_%i_mandi_autoreduced.%s'
     try:
         event_ws = Load(Filename=nxsFilename, OutputWorkspace='event_ws')
+        #filter low (or zero) power pulses
+        event_ws = FilterByLogValue(InputWorkspace=event_ws, LogName='proton_charge', MinimumValue=2e6)
         if DetCalFile is not None:
             print('Loading DetCal file %s' % DetCalFile)
             LoadIsawDetCal(InputWorkspace=event_ws, Filename=DetCalFile)

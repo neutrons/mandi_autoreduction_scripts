@@ -40,6 +40,8 @@ def doIntegration(d):
 
     try:
         event_ws = Load(Filename=nxsFormat%runNumber, OutputWorkspace='event_ws')
+        #filter low (or zero) power pulses
+        event_ws = FilterByLogValue(InputWorkspace=event_ws, LogName='proton_charge', MinimumValue=2e6)
         if DetCalFile is not None:
             print('Loading DetCal file %s'%DetCalFile)
             LoadIsawDetCal(InputWorkspace=event_ws, Filename=DetCalFile)
