@@ -25,7 +25,7 @@ def readParamsNexusFile(paramFileName):
         colsToRead = f['mantid_workspace_1/table_workspace/'].keys()
         for col in colsToRead:
             key = 'mantid_workspace_1/table_workspace/{}'.format(col)
-            colName = f[key].attrs['name']
+            colName = str(f[key].attrs['name'].decode('utf8'))
             colVal = f[key].value
             if colName != 'newQ':
                 d[colName] = colVal
@@ -416,7 +416,7 @@ def createMTZFile(d, out_dir, run_number, run_numbers_to_process=None):
         f.write('export HKLOUT\n')
         f.write('time %s < %slnorm_merged.dat > %slnorms70aMaNDi_merged.log\n' % (  # noqa: E501
                 lauenormBin, laue_directory, laue_directory))
-    os.chmod(comFilename, 0775)
+    os.chmod(comFilename, 0o775)
     print('Wrote lauenorm executable to %s' % comFilename)
     print('Running laueNorm...')
     mtd.clear()
